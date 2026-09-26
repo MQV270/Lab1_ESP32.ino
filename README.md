@@ -22,7 +22,7 @@ El programa también muestra en el Monitor Serial el voltaje ingresado, el códi
 ## Archivos
 
 ### Laboratorio_1_ESP32.ino
-Código fuente utilizado para la generación simultánea de las salidas DAC y PWM del ESP32.
+Código que fue usado para (el código genera el mismo resultado que el que se genero en el laboratorio a pesar de no ser el mismo) la generación simultánea de las salidas DAC y PWM del ESP32.
 
 ### Montaje_Proteus.pdsprj
 Archivo del proyecto utilizado para representar el montaje del circuito en Proteus.
