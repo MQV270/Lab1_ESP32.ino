@@ -1,0 +1,72 @@
+#include <Arduino.h>
+
+// Definición de pines e hiperparámetros
+const int PIN_DAC = 25;       // Salida DAC canal 1
+const int PIN_PWM = 27;       // Salida PWM
+const uint32_t PWM_FREQ = 5000; // Frecuencia del PWM en Hz
+const uint8_t PWM_RES = 8;    // Resolución en bits (0 - 255)
+const float VREF = 3.3;       // Voltaje de referencia de alimentación del ESP32
+
+void setup() {
+  Serial.begin(115200);
+  while (!Serial) { ; } // Esperar la apertura de la terminal Serial
+
+  // Configuración de la salida DAC en GPIO25
+  pinMode(PIN_DAC, OUTPUT);
+
+  // Configuración del periférico LEDC para PWM en ESP32 (núcleo v3.x)
+  ledcAttach(PIN_PWM, PWM_FREQ, PWM_RES);
+
+  // Inicialización de ambos canales en 0 V
+  dacWrite(PIN_DAC, 0);
+  ledcWrite(PIN_PWM, 0);
+
+  Serial.println("\n-----------------------------------------------------");
+  Serial.println(" UNMSM - Taller de Equipos Biomedicos II");
+  Serial.println(" Lab 1: Generación y Calibración de Señales Analógicas");
+  Serial.println("-----------------------------------------------------");
+  Serial.println("Ingrese un voltaje deseado entre 0.00 y 3.30 V:");
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    float v_deseado = Serial.parseFloat();
+
+    // Limpieza del búfer de lectura
+    while (Serial.available() > 0) {
+      Serial.read();
+    }
+
+    // Validación y restricción dentro del rango permitido (0 a 3.3 V)
+    if (v_deseado < 0.0) v_deseado = 0.0;
+    if (v_deseado > VREF) v_deseado = VREF;
+
+    // Conversión a valor discreto de 8 bits (0 - 255)
+    uint8_t dac_code = (uint8_t)round((v_deseado / VREF) * 255.0);
+
+    // Salida simultánea
+    dacWrite(PIN_DAC, dac_code);
+    ledcWrite(PIN_PWM, dac_code);
+
+    // Voltaje equivalente teórico
+    float v_teorico = (dac_code / 255.0) * VREF;
+
+    // Muestreo de información en el Monitor Serial
+    Serial.println("\n--- Nuevo Valor Configurado ---");
+    Serial.print("Voltaje Ingresado: ");
+    Serial.print(v_deseado, 2);
+    Serial.println(" V");
+    
+    Serial.print("Código Calculado (8-bit): ");
+    Serial.print(dac_code);
+    Serial.print(" (0x");
+    Serial.print(dac_code, HEX);
+    Serial.println(")");
+
+    Serial.print("Voltaje Teórico Reconstruido: ");
+    Serial.print(v_teorico, 3);
+    Serial.println(" V");
+    Serial.println("----------------------------------");
+    Serial.println("Ingrese un nuevo voltaje (0.00 - 3.30 V):");
+  }
+}
